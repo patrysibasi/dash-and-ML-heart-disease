@@ -306,45 +306,47 @@ def update_csv(n_clicks, age, sex, chest_pain_type, resting_bp_s, cholesterol,
 
 
 def update_output(n_clicks, age, sex, chest_pain_type, resting_bp_s, cholesterol, 
-                  fasting_blood_sugar, resting_ecg, max_heart_rate, exercise_angina, oldpeak, ST_slope):
-    if n_clicks is None:
+                  fasting_blood_sugar, resting_ecg, max_heart_rate, exercise_angina, oldpeak, ST_slope):  
+    if n_clicks > 0:
+    
+        # Prepare input data for prediction
+        input_data = pd.DataFrame({
+            'age': [age], 
+            'sex': [sex], 
+            'chest pain type': [chest_pain_type],
+            'resting bp s': [resting_bp_s],
+            'cholesterol': [cholesterol],
+            'fasting blood sugar': [fasting_blood_sugar],
+            'resting ecg': [resting_ecg],
+            'max heart rate': [max_heart_rate],
+            'exercise angina': [exercise_angina],
+            'oldpeak': [oldpeak],
+            'ST slope': [ST_slope]
+        })
+        
+        # Make predictions
+        predictions = model.predict(input_data)
+        probabilities = model.predict_proba(input_data)
+        
+        # Construct the output
+        prediction_text = f"Predicted class: {predictions[0]}"
+        probabilities_text = f"Probabilities (0, 1): {probabilities[0]}"
+
+        output = html.Div([
+            html.Div(prediction_text),
+            html.Div(probabilities_text)
+        ])
+        
+        table = html.Table([
+            html.Tr([html.Th(col) for col in input_data.columns]),
+            html.Tr([html.Td(input_data.iloc[0][col]) for col in input_data.columns])
+        ])
+        
+        return output, table
+
+    else:
         return "Server is ready for calculation.", None
     
-    # Prepare input data for prediction
-    input_data = pd.DataFrame({
-        'age': [age], 
-        'sex': [sex], 
-        'chest pain type': [chest_pain_type],
-        'resting bp s': [resting_bp_s],
-        'cholesterol': [cholesterol],
-        'fasting blood sugar': [fasting_blood_sugar],
-        'resting ecg': [resting_ecg],
-        'max heart rate': [max_heart_rate],
-        'exercise angina': [exercise_angina],
-        'oldpeak': [oldpeak],
-        'ST slope': [ST_slope]
-    })
-    
-    # Make predictions
-    predictions = model.predict(input_data)
-    probabilities = model.predict_proba(input_data)
-    
-    # Construct the output
-    prediction_text = f"Predicted class: {predictions[0]}"
-    probabilities_text = f"Probabilities (0, 1): {probabilities[0]}"
-
-    output = html.Div([
-        html.Div(prediction_text),
-        html.Div(probabilities_text)
-    ])
-    
-    table = html.Table([
-        html.Tr([html.Th(col) for col in input_data.columns]),
-        html.Tr([html.Td(input_data.iloc[0][col]) for col in input_data.columns])
-    ])
-    
-    return output, table
-
 # Run server
 if __name__ == '__main__':
     app.run_server(debug=True)
